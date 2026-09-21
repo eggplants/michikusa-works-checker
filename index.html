@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>道草屋 買い忘れチェッカー</title>
+    <meta
+      name="description"
+      content="「道草屋」シリーズ作品の買い忘れチェッカー"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="canonical" href="https://egpl.dev/michikusa-works-checker/" />
+    <meta property="og:site_name" content="道草屋 買い忘れチェッカー" />
+    <meta property="og:url" content="https://egpl.dev/michikusa-works-checker/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="道草屋 買い忘れチェッカー" />
+    <meta
+      property="og:description"
+      content="「道草屋」シリーズ作品の買い忘れチェッカー"
+    />
+    <meta property="og:locale" content="ja_JP" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@egpl0" />
+    <meta name="twitter:title" content="道草屋 買い忘れチェッカー" />
+    <meta
+      name="twitter:description"
+      content="桃色CODE「道草屋」シリーズ作品の買い忘れチェッカー"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🍡</text></svg>"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --fg: #16181d;
+        --muted: #5b6270;
+        --bg: #ffffff;
+        --panel: #f5f6f8;
+        --border: #d8dce3;
+        --accent: #0b6ea8;
+        --owned-bg: #eceef1;
+        --owned-fg: #9aa1ad;
+        --set-bg: #fff3e8;
+        --set-border: #e6a56a;
+        --set-fg: #7a4410;
+        --warn-bg: #fff6e0;
+        --warn-border: #e0b44a;
+        --warn-fg: #6b4c05;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fg: #e6e8ec;
+          --muted: #98a0ae;
+          --bg: #14161a;
+          --panel: #1c1f25;
+          --border: #2e333c;
+          --accent: #58b6e8;
+          --owned-bg: #1a1c21;
+          --owned-fg: #5c6370;
+          --set-bg: #2b1f12;
+          --set-border: #7a5424;
+          --set-fg: #e8c090;
+          --warn-bg: #2b2312;
+          --warn-border: #7a6224;
+          --warn-fg: #e8cf90;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        accent-color: var(--accent);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Hiragino Sans",
+          "Noto Sans JP",
+          sans-serif;
+        line-height: 1.7;
+      }
+      .wrap {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 3rem;
+      }
+      header h1 {
+        font-size: 1.35rem;
+        margin: 0 0 0.2rem;
+      }
+      header p.sub {
+        margin: 0 0 1.25rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      a {
+        color: var(--accent);
+      }
+      .notice {
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-border);
+        color: var(--warn-fg);
+        border-radius: 0.5rem;
+        padding: 0.9rem 1.1rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.92rem;
+      }
+      .notice p {
+        margin: 0.3rem 0 0;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem 1.25rem;
+        align-items: center;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.15rem;
+        margin: 0 0 1.25rem;
+        font-size: 0.9rem;
+      }
+      .toolbar .stat {
+        color: var(--muted);
+      }
+      .toolbar .stat strong {
+        color: var(--fg);
+        font-size: 1.05rem;
+      }
+      .toolbar label {
+        cursor: pointer;
+        user-select: none;
+      }
+      .toolbar button {
+        font: inherit;
+        font-size: 0.85rem;
+        color: var(--fg);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 0.35rem;
+        padding: 0.2rem 0.7rem;
+        cursor: pointer;
+      }
+      .toolbar button:hover {
+        border-color: var(--accent);
+      }
+      .toolbar .spacer {
+        flex: 1;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.35rem 0.6rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: var(--panel);
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+      }
+      td.chk,
+      td.id,
+      td.date,
+      td.price,
+      td.age {
+        white-space: nowrap;
+      }
+      td.chk {
+        text-align: center;
+      }
+      td.chk input {
+        width: 1.15rem;
+        height: 1.15rem;
+        cursor: pointer;
+      }
+      td.chk input:disabled {
+        cursor: not-allowed;
+      }
+      td.price {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      td.title label {
+        cursor: pointer;
+      }
+      td.note {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.9em;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 0.75rem;
+        line-height: 1.4;
+        padding: 0 0.4rem;
+        border-radius: 0.3rem;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        margin-right: 0.35rem;
+        vertical-align: 0.1em;
+      }
+      .badge.set {
+        background: var(--set-bg);
+        border-color: var(--set-border);
+        color: var(--set-fg);
+      }
+      tr.is-set td {
+        background: var(--set-bg);
+      }
+      /* 購入済み（直接チェック） / セットで網羅済み はどちらもグレーアウト */
+      tr.owned td,
+      tr.covered td {
+        background: var(--owned-bg);
+        color: var(--owned-fg);
+      }
+      tr.owned td a,
+      tr.covered td a,
+      tr.owned .badge,
+      tr.covered .badge {
+        color: var(--owned-fg);
+        border-color: var(--border);
+        background: transparent;
+      }
+      tr.owned td.title,
+      tr.covered td.title {
+        text-decoration: line-through;
+        text-decoration-color: var(--owned-fg);
+      }
+      body.hide-owned tr.owned,
+      body.hide-owned tr.covered {
+        display: none;
+      }
+      footer {
+        border-top: 1px solid var(--border);
+        margin-top: 2rem;
+        padding-top: 1rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>道草屋 買い忘れチェッカー</h1>
+        <p class="sub">
+          桃色CODE様
+          <a
+            href="https://www.dlsite.com/maniax/circle/profile/=/maker_id/RG24350.html"
+            rel="noopener"
+            >「【耳かき】道草屋【安眠】」シリーズ</a
+          >
+          の作品一覧 / <span id="fetched-at"></span> 時点
+        </p>
+      </header>
+
+      <div class="notice">
+        <strong>⚠️ 非公式ページです</strong>
+        <p>
+          桃色CODE様とは無関係です。価格・販売状況は変わることがあります。
+        </p>
+      </div>
+
+      <div class="toolbar">
+        <span class="stat">未購入 <strong id="stat-remaining">-</strong> 作品</span>
+        <span class="stat">未購入合計 <strong id="stat-total">-</strong></span>
+        <span class="stat">購入済 <strong id="stat-owned">-</strong> / <span id="stat-all">-</span></span>
+        <span class="spacer"></span>
+        <label><input type="checkbox" id="hide-owned" /> 購入済を隠す</label>
+        <button type="button" id="reset">チェックをすべて外す</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>購入</th>
+              <th>作品ID</th>
+              <th>タイトル</th>
+              <th>販売日</th>
+              <th>価格</th>
+              <th>年齢</th>
+              <th>備考</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <footer>
+        Source:
+        <a href="https://github.com/eggplants/michikusa-works-checker"
+          >github.com/eggplants/michikusa-works-checker</a
+        >
+      </footer>
+    </div>
+
+    <script>
+      // DLsite サークルページ (RG24350) から取得した作品一覧。販売日降順。
+      // includes: セット作品に収録されている個別作品の ID（DLsite の作品説明より）。
+      const FETCHED_AT = "2026-09-22";
+      const WORKS = [
+        { id: "RJ01606763", title: "【ポキポキ整体】道草屋-なつな4- 足湯、温泉、ポキポキ按摩！【貸し切り温泉】", date: "2026-04-18", price: 880, age: "R-18" },
+        { id: "RJ01407907", title: "【散髪シャンプー】道草屋-すずな8- バーバーすずなお茶の間支店【泡泡マッサージ】", date: "2025-06-14", price: 880, age: "全年齢" },
+        { id: "RJ01287230", title: "【雨音木琴】道草屋-たびらこ6-しとしとおうち時間【指歯ブラシ】", date: "2024-11-09", price: 880, age: "R-18" },
+        { id: "RJ01143842", title: "【リラックス野焼き】道草屋-稲5-野焼きと古めのお正月【レトロ耳かき】", date: "2024-01-20", price: 880, age: "R-15" },
+        { id: "RJ01100529", title: "【焦らし系家具ごっこ】道草屋-はこべら8-備え付けのアメニティ【ひぐらし耳かき】", date: "2023-09-23", price: 880, age: "R-18" },
+        { id: "RJ01074609", title: "【水中耳かき】道草屋-いのこ4-湯船の中の耳掃除【柔らかシャンプー】", date: "2023-07-08", price: 880, age: "全年齢" },
+        { id: "RJ01017217", title: "【イヤーキャンドル】道草屋-なつな3-たぬさんこんにちは【ずぶ濡れシャンプー】", date: "2023-01-21", price: 880, age: "R-18" },
+        { id: "RJ434208", title: "【くちびるマッサージ】道草屋 すずしろ8-今どきの奉公さん【立体怪談】", date: "2022-11-13", price: 880, age: "R-18" },
+        { id: "RJ387503", title: "【ほろ酔い歯磨き】道草屋 芹8-おばあちゃんの縁側【立体ごはん】", date: "2022-04-29", price: 880, age: "R-15" },
+        { id: "RJ363096", title: "【お隣り耳噛み】道草屋 なつな2 隣の部屋のたぬきさん。【お隣り耳かき】", date: "2021-12-18", price: 880, age: "R-18" },
+        { id: "RJ338989", title: "【炭酸スパ】道草屋-すずな7-barberすずな炭酸スパすーぱー【縁側散髪】", date: "2021-08-16", price: 880, age: "全年齢" },
+        { id: "RJ325494", title: "【バスでうたた寝】道草屋-なつな 田舎のバスとたぬきさん。【雨と耳かき】", date: "2021-04-29", price: 880, age: "R-15" },
+        { id: "RJ313738", title: "【お口悪戯】道草屋-はこべら6-お風呂場のえんまさま【おこた耳かき】", date: "2021-01-11", price: 880, age: "R-18" },
+        { id: "RJ298887", title: "【足水と西瓜】道草屋-稲4 何でもない日の夏休み。【立体怪談】", date: "2020-09-06", price: 880, age: "R-15" },
+        { id: "RJ290963", title: "道草屋-夏の日。【片手間用音声】", date: "2020-06-15", price: 110, age: "全年齢" },
+        { id: "RJ284644", title: "【オーラルセラピー】道草屋 たびらこ5 ～おまかせコース～【炭酸洗顔】", date: "2020-04-19", price: 880, age: "R-18" },
+        { id: "RJ275547", title: "【枕元焚き火】道草屋 いのこ3 焚き火とぶんぶく初茶釜【招福祈願】", date: "2020-01-18", price: 880, age: "R-15" },
+        { id: "RJ267279", title: "【秋音耳かき】道草屋 はこべら日帰り 離れの秘密基地【趣味の音】", date: "2019-10-14", price: 880, age: "R-15" },
+        { id: "RJ260122", title: "【雨音喫茶】道草屋 すずしろ7-雨のち晴れの日【目隠しマッサージ】", date: "2019-08-04", price: 880, age: "R-18" },
+        { id: "RJ253947", title: "【初夏耳かき】道草屋 芹7 ゆうがた【湯船怪談】", date: "2019-05-26", price: 880, age: "R-15" },
+        { id: "RJ246120", title: "【皆でお鍋】道草屋-すずな6-新装開店バーバーすずな、他【散髪シャンプー】", date: "2019-02-16", price: 880, age: "R-15" },
+        { id: "RJ239448", title: "【一緒に温泉】道草屋 たびらこ4 ほかほか風邪予防!【お休み歯磨き】", date: "2018-11-24", price: 880, age: "R-18" },
+        { id: "RJ234446", title: "【大人向け耳かき】道草屋 はこべら5 時計修理のはこべらさん。他【汗の匂い】", date: "2018-09-15", price: 880, age: "R-18" },
+        { id: "RJ228778", title: "【爪切り】道草屋 すずしろ日帰り-雨宿り【鼓膜マッサージ】", date: "2018-07-08", price: 770, age: "R-15" },
+        { id: "RJ227037", title: "【思い出す音】道草屋-稲3 どろたんぼ。他【静かめ耳かき】", date: "2018-06-09", price: 880, age: "R-15" },
+        { id: "RJ220927", title: "【温泉素潜り】道草屋-いのこ2 湯けむりいのこ旅慕情【昔話耳かき】", date: "2018-03-15", price: 880, age: "R-15" },
+        { id: "RJ215492", title: "【こたつ系】道草屋-芹-そんな冬の日【安心耳かき】", date: "2017-12-28", price: 880, age: "R-15" },
+        { id: "RJ210534", title: "【おふろでお手伝い】道草屋 すずしろ お風呂でホットヨガ!他2本【夕焼け野点】", date: "2017-10-15", price: 880, age: "R-18" },
+        { id: "RJ204846", title: "【夏休み耳かき】道草屋-すずな【散髪炭酸ヘッドスパ!●夏休み花火大会●みみかき日記】", date: "2017-08-05", price: 880, age: "R-15" },
+        { id: "RJ201117", title: "【タッチ耳かき】道草屋-たびらこ3-いっしょにタッチケア/はみがきレッスン【骨伝導風はみがき】", date: "2017-06-03", price: 880, age: "R-15" },
+        { id: "RJ197305", title: "【日向耳かき】道草屋 はこべら-移動珈琲店/よるの動物さん【這より悪戯】", date: "2017-04-02", price: 880, age: "R-18" },
+        { id: "RJ193217", title: "【田舎系耳かき】道草屋 稲2 炬燵みかん。【クリーム耳揉み】", date: "2017-01-26", price: 880, age: "R-15" },
+        { id: "RJ187542", title: "【ご旅行耳かき】道草屋 いのこ【乳液耳揉み】", date: "2016-10-29", price: 880, age: "R-15" },
+        { id: "RJ184314", title: "【不健全はみがき】道草屋 すずしろ-はなびの日【ゆっくり按摩】", date: "2016-09-04", price: 880, age: "R-18" },
+        { id: "RJ180495", title: "【ノスタルジ-耳かき】道草屋-芹 おもいで【二人で怪談】", date: "2016-07-07", price: 880, age: "R-15" },
+        { id: "RJ175660", title: "【散髪シャンプー】道草屋 すずな『バーバーすずな』【二人で耳かき】", date: "2016-04-23", price: 880, age: "全年齢" },
+        { id: "RJ171695", title: "【骨伝導風】道草屋 たびらこ-一緒にはみがき【耳かき&はみがき】", date: "2016-02-10", price: 880, age: "R-18" },
+        { id: "RJ167676", title: "【二人で耳かき】道草屋-いね たび-おひる。【176khzハイレゾ】", date: "2015-12-12", price: 880, age: "R-15" },
+        { id: "RJ163504", title: "【温泉&耳かき】道草屋-はこべら-混浴マナー講座【174khzハイレゾ】", date: "2015-09-29", price: 880, age: "R-18" },
+        { id: "RJ159555", title: "【174khzハイレゾ】道草屋-芹-夏休み【切抜き耳かき】", date: "2015-07-30", price: 880, age: "R-15" },
+        { id: "RJ156568", title: "【176khzハイレゾ】道草屋 すずしろ-雨の日【耳かき&マッサージ】", date: "2015-06-06", price: 880, age: "R-18" },
+        { id: "RJ152487", title: "【田舎耳かき】道草屋 はこべら・すずなぱっく", date: "2015-03-27", price: 990, age: "全年齢", includes: ["RJ132167", "RJ129030"], note: "旧版の立体音響バージョンアップ版。旧版購入者は再DLで同梱" },
+        { id: "RJ151299", title: "【192khzハイレゾ】道草屋 たびらこ【古宿耳かき】", date: "2015-03-01", price: 770, age: "全年齢" },
+        { id: "RJ146706", title: "【アイヌ系】道草屋 すずな 囲炉裏の音【うたた寝音声】", date: "2014-12-23", price: 880, age: "全年齢" },
+        { id: "RJ144160", title: "【原風景耳かき】道草屋 稲【ソルフェジオ音源】", date: "2014-11-01", price: 770, age: "全年齢" },
+        { id: "RJ141480", title: "【田舎耳かき】道草屋 芹-ご連泊【ソルフェジオ音源】", date: "2014-09-13", price: 880, age: "全年齢" },
+        { id: "RJ138490", title: "【寝たふり悪戯】道草屋 はこべら-ウソツキ【マッサージ】", date: "2014-07-27", price: 770, age: "R-18" },
+        { id: "RJ136046", title: "【田舎耳かき】道草屋 すずしろ-縁側 【あまがみ】", date: "2014-06-10", price: 880, age: "全年齢" },
+        { id: "RJ133662", title: "【甘がみ】道草屋 すずな-ひろいもの-【マッサージ】", date: "2014-05-02", price: 770, age: "R-18" },
+        { id: "RJ132167", title: "【箱庭耳かき】安眠店 道草屋 はこべら【耳舐め】", date: "2014-03-30", price: 770, age: "全年齢" },
+        { id: "RJ130931", title: "【耳かきセット】道草屋 すずしろ&芹ver1.5【耳舐め】", date: "2014-03-03", price: 1100, age: "全年齢", includes: ["RJ125930", "RJ126604"], note: "ver1.5 のセット。旧版購入者は再DLで ver1.5 同梱" },
+        { id: "RJ130297", title: "【甘がみ】道草屋 芹-ほろよい-【マッサージ】", date: "2014-02-19", price: 770, age: "R-18" },
+        { id: "RJ129030", title: "【耳かき】耳かき安眠店 道草屋 すずな【甘がみ】", date: "2014-01-25", price: 770, age: "全年齢" },
+        { id: "RJ127961", title: "【耳なめ】道草屋 すずしろ 連夜【マッサージ】", date: "2014-01-10", price: 770, age: "R-18" },
+        { id: "RJ126604", title: "【耳かき】耳かき安眠店 道草屋 せり ver1.5【耳舐め】", date: "2013-12-17", price: 770, age: "全年齢" },
+        { id: "RJ125930", title: "【耳かき】耳かき安眠店 道草屋 すずしろ ver1.5【耳舐め】", date: "2013-11-30", price: 770, age: "全年齢" },
+      ];
+
+      const STORAGE_KEY = "michikusa-owned";
+      const byId = new Map(WORKS.map((w) => [w.id, w]));
+      // 個別作品 ID -> それを収録するセット ID の一覧
+      const setsOf = new Map();
+      for (const w of WORKS) {
+        for (const child of w.includes ?? []) {
+          if (!setsOf.has(child)) setsOf.set(child, []);
+          setsOf.get(child).push(w.id);
+        }
+      }
+
+      function loadOwned() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return new Set(raw ? JSON.parse(raw) : []);
+        } catch {
+          return new Set();
+        }
+      }
+      function saveOwned(owned) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify([...owned]));
+        } catch {
+          /* private mode などで保存できなくても動作は続ける */
+        }
+      }
+
+      const owned = loadOwned();
+      const yen = new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY" });
+
+      function workUrl(w) {
+        const floor = w.age === "全年齢" ? "home" : "maniax";
+        return `https://www.dlsite.com/${floor}/work/=/product_id/${w.id}.html`;
+      }
+
+      function render() {
+        const tbody = document.getElementById("rows");
+        tbody.replaceChildren();
+        for (const w of WORKS) {
+          const tr = document.createElement("tr");
+          tr.dataset.id = w.id;
+          const isSet = Boolean(w.includes);
+          if (isSet) tr.classList.add("is-set");
+
+          const noteParts = [];
+          if (isSet) {
+            noteParts.push(
+              "収録: " + w.includes.map((id) => `<code>${id}</code>`).join(", ")
+            );
+          }
+          if (setsOf.has(w.id)) {
+            noteParts.push(
+              "収録セット: " + setsOf.get(w.id).map((id) => `<code>${id}</code>`).join(", ")
+            );
+          }
+          if (w.note) noteParts.push(w.note);
+
+          tr.innerHTML = `
+            <td class="chk"><input type="checkbox" id="chk-${w.id}" aria-label="購入済み: ${w.title}" /></td>
+            <td class="id"><a href="${workUrl(w)}" rel="noopener" target="_blank">${w.id}</a></td>
+            <td class="title">${isSet ? '<span class="badge set">セット</span>' : ""}<label for="chk-${w.id}">${w.title}</label></td>
+            <td class="date">${w.date}</td>
+            <td class="price">${yen.format(w.price)}</td>
+            <td class="age">${w.age}</td>
+            <td class="note">${noteParts.join("<br>")}</td>`;
+          tbody.append(tr);
+        }
+        update();
+      }
+
+      function update() {
+        // セットで網羅されている個別作品
+        const covered = new Set();
+        for (const id of owned) {
+          for (const child of byId.get(id)?.includes ?? []) covered.add(child);
+        }
+
+        let remaining = 0;
+        let total = 0;
+        let ownedCount = 0;
+        for (const w of WORKS) {
+          const tr = document.querySelector(`tr[data-id="${w.id}"]`);
+          const chk = tr.querySelector("input");
+          const isOwned = owned.has(w.id);
+          const isCovered = !isOwned && covered.has(w.id);
+          chk.checked = isOwned || isCovered;
+          chk.disabled = isCovered;
+          chk.title = isCovered ? "セットで購入済み" : "";
+          tr.classList.toggle("owned", isOwned);
+          tr.classList.toggle("covered", isCovered);
+          if (isOwned || isCovered) {
+            ownedCount++;
+          } else if (!w.includes) {
+            // 未購入の集計はセットを除いた個別作品のみ
+            remaining++;
+            total += w.price;
+          }
+        }
+        document.getElementById("stat-remaining").textContent = remaining;
+        document.getElementById("stat-total").textContent = yen.format(total);
+        document.getElementById("stat-owned").textContent = ownedCount;
+        document.getElementById("stat-all").textContent = WORKS.length;
+      }
+
+      document.getElementById("rows").addEventListener("change", (e) => {
+        const tr = e.target.closest("tr[data-id]");
+        if (!tr) return;
+        if (e.target.checked) owned.add(tr.dataset.id);
+        else owned.delete(tr.dataset.id);
+        saveOwned(owned);
+        update();
+      });
+
+      document.getElementById("hide-owned").addEventListener("change", (e) => {
+        document.body.classList.toggle("hide-owned", e.target.checked);
+      });
+
+      document.getElementById("reset").addEventListener("click", () => {
+        owned.clear();
+        saveOwned(owned);
+        update();
+      });
+
+      document.getElementById("fetched-at").textContent = FETCHED_AT;
+      render();
+    </script>
+  </body>
+</html>
